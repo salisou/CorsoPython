@@ -45,3 +45,20 @@ impor_programmazione("Python")
 # Crea una lista che calcola la media di una lista di numeri
 # funzione
 # numeri = []
+
+# def calcola_media(lista):
+#     return sum(lista) / len(lista)
+#
+# numeri = [10, 20, 30, 40, 50]
+# print("La media è:", calcola_media(numeri))
+
+try:
+    numero = int(input("Inserire un numero: ")) # abc (1263541)
+    if numero == int(0):
+       print("inserisci un numero più altro")
+    elif numero > int(0):
+       print(f"Hai inserito un numero {numero }")
+    else:
+        print("inserisci un valore")
+except ValueError:
+    print("Errore non è un numero! ")
