@@ -1,0 +1,10 @@
+{
+     "id": 100,
+     "nome": "Ilaria",
+     "cognome": "Colombraro",
+     "classe": "4A",
+     "corsi": [
+          10,
+          11
+     ]
+}

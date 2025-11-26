@@ -1,0 +1,4 @@
+Questo è il mio primo file.
+Sto imparando a usare i file con Python!😉
+Ora so come usare Sql server e Python🎉
+Sono molto felice oggi😊.
