@@ -42,4 +42,4 @@ if 100 in rubrica:
 for id_studente, info in rubrica.items():
     print(f"Id dello studente: {id_studente}: nome {info["nome"]} Cognome {info["Cognome"]} e la classe {info["Classe"]}")
 
-#
+# Creare una lista di tutti i cognomi
