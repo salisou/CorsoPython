@@ -17,14 +17,21 @@ strCon = f"""
     Encrypt=no;
 """
 
+# ==========================
+# FUNZIONI PRINCIPALI
+# ==========================
 def mostra():
     """Legge tutti gli studenti dal DB e li mostra nella TextBox."""
     try:
-        conn = pyodbc.connect(strCon)
-        df = pd.read_sql("SELECT * FROM Studente", conn)
+        conn = pyodbc.connect(strCon)                         # Connessione DB
+        # -------Usare la store procedure
+        df = pd.read_sql("SELECT * FROM Studente", conn)  # Legge tutti i record
+
+        #------------Da modificare --------------
         conn.close()
         box.delete("1.0", tk.END)
         box.insert(tk.END, df.to_string(index=False))
+        #---------------------------------
     except Exception as e:
         messagebox.showerror("Errore", str(e))
 
@@ -43,37 +50,65 @@ def insert():
     try:
         conn = pyodbc.connect(strCon)
         cursor = conn.cursor()
-        sql = """
+        sql = """ # -------Usare la store procedure 
             INSERT INTO Studente (NomeStudente, CognomeStudente, DataNascita, Email)
             VALUES (?, ?, ?, ?)
         """
+
         cursor.execute(sql, (nome, cognome, data_nascita, email))
         conn.commit()
         conn.close()
         messagebox.showinfo("OK", "Studente inserito!")
 
+        #--------Creare una funzione e aggiungere l'id dello studente
         # Pulisce i campi dopo inserimento
-        e_nome.delete(0, tk.END)
-        e_cognome.delete(0, tk.END)
-        e_datanascita.delete(0, tk.END)
-        e_mail.delete(0, tk.END)
+        # e_nome.delete(0, tk.END)
+        # e_cognome.delete(0, tk.END)
+        # e_datanascita.delete(0, tk.END)
+        # e_mail.delete(0, tk.END)
 
         mostra()  # Aggiorna la lista
+        # Modificare il tipo del'eccezione usando pyodbc.error
     except Exception as e:
         messagebox.showerror("Errore", str(e))
+###########################################################
+#                 Funzioni da creare
+###########################################################
 
+
+
+#------ Creare una funzione per gestire gli aggiornamenti
+#--------------------------------------------------------
+
+#------ Creare una funzione per Cancellare---------------
+#--------------------------------------------------------
+
+#------ Creare una funzione che Pulisce tutti i campi di input--
+#---------------------------------------------------------------
+
+
+#-Creare una funzione che Carica i dati della riga selezionata nei campi di input
+#---------------------------------------------------------------
+
+###########################################################
+#                 Fine dei  Funzioni
+###########################################################
+# ==========================
 # GUI
+# ==========================
 win = tk.Tk()
 win.title("Gestione Studente")
-win.geometry("700x600")
+win.geometry("850x650")
 
 # Etichette
+# Aggiungere StudenteId
 ttk.Label(win, text="Nome").grid(row=0, column=0, padx=5, pady=5)
 ttk.Label(win, text="Cognome").grid(row=0, column=1, padx=5, pady=5)
 ttk.Label(win, text="Data di nascita (YYYY-MM-GG)").grid(row=0, column=2, padx=5, pady=5)
 ttk.Label(win, text="Email").grid(row=0, column=3, padx=5, pady=5)
 
 # Campi input
+# Aggiungere StudenteId
 e_nome = ttk.Entry(win); e_nome.grid(row=1, column=0, padx=5, pady=5)
 e_cognome = ttk.Entry(win); e_cognome.grid(row=1, column=1, padx=5, pady=5)
 e_datanascita = ttk.Entry(win); e_datanascita.grid(row=1, column=2, padx=5, pady=5)
@@ -82,9 +117,34 @@ e_mail = ttk.Entry(win); e_mail.grid(row=1, column=3, padx=5, pady=5)
 # Pulsanti
 ttk.Button(win, text="Mostra", command=mostra).grid(row=2, column=0, padx=5, pady=10)
 ttk.Button(win, text="Inserisci", command=insert).grid(row=2, column=1, padx=5, pady=10)
+########## Pulsanti da aggiungere ###########
+# Aggiorna per ID e Elimina per ID
+##############################################
 
-# Area testo per mostrare dati
+# Griglia tipo WinForms###########################
+# columns = ("StudenteId", "Nome", "Cognome", "DataNascita", "Email")
+# grid = ttk.Treeview(win, columns=columns, show="headings", height=15)
+#
+# for col in columns:
+#     grid.heading(col, text=col)
+#     grid.column(col, width=150)
+#
+# scrollbar = ttk.Scrollbar(win, orient="vertical", command=grid.yview)
+# grid.configure(yscroll=scrollbar.set)
+#
+# grid.grid(row=4, column=0, columnspan=5, padx=10, pady=10)
+# scrollbar.grid(row=4, column=5, sticky="ns")
+#
+# # Evento click su riga
+# grid.bind("<<TreeviewSelect>>", carica_dati)
+##################################################
+
+# Area testo per mostrare dati da rimuovere
 box = tk.Text(win, width=80, height=20)
 box.grid(row=4, column=0, columnspan=4, padx=10, pady=10)
+
+
+# # Evento click su riga
+# grid.bind("<<TreeviewSelect>>", carica_dati)
 
 win.mainloop()
