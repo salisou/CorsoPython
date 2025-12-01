@@ -1,5 +1,6 @@
 
 import tkinter as tk
+from datetime import datetime
 from tkinter import ttk, messagebox, Text
 import pyodbc as odbc
 import pandas as pd
@@ -26,7 +27,7 @@ def mostra():
     """Mostra tutti gli studenti nella griglia Treeview"""
     try:
         conn = odbc.connect(strCon)                      # Connessione DB
-        df = pd.read_sql("SELECT * FROM Studente", conn)   # Legge tutti i record
+        df = pd.read_sql("EXEC sp_selectStudenti", conn)   # Legge tutti i record
         conn.close()
 
         # Cancella righe esistenti nella griglia
@@ -54,10 +55,7 @@ def insert():
     try:
         conn = odbc.connect(strCon)
         cursor = conn.cursor()
-        sql = """ # -------Usare la store procedure 
-            INSERT INTO Studente (NomeStudente, CognomeStudente, DataNascita, Email)
-            VALUES (?, ?, ?, ?)
-        """
+        sql = """ EXEC sp_InsertStudente ?, ?, ?, ? """
 
         cursor.execute(sql, (nome, cognome, data_nascita, email))
         conn.commit()
@@ -70,7 +68,6 @@ def insert():
         messagebox.showerror("Errore Db",f"Errore durante l'inserimento: {e}")
     except Exception as ex:
         messagebox.showerror("Errore!", f"Errore imprevisto")
-
 
 ###########################################################
 #                 Funzioni da creare
@@ -98,13 +95,9 @@ def update_by_id():
         conn = odbc.connect(strCon)
         cursor = conn.cursor()
         """ -------Usare la store procedure  per l'aggiornamento"""
-        sql = """ EXEC ------ ?,?,?,?
-            UPDATE Studente 
-            SET NomeStudente = ?, CognomeStudente = ?, DataNascita = ?, Email = ?
-            WHERE StudenteId = ?
-        """
+        sql = """ EXEC sp_UpdateStudente ?, ?, ?, ?, ? """
 
-        cursor.execute(sql, (nome, cognome, data_nascita, email, int(id_studente)))
+        cursor.execute(sql, (id_studente, nome, cognome, data_nascita, email))
         conn.commit()
 
         if cursor.rowcount > 0:
@@ -142,7 +135,7 @@ def delete_by_id():
     try:
         conn = odbc.connect(strCon)
         cursor = conn.cursor()
-        sql = "DELETE FROM Studente WHERE StudenteId = ?"
+        sql = "EXEC sp_DeleteStudente ?"
         cursor.execute(sql, (int(id_studente),))
         conn.commit()
 
@@ -173,7 +166,6 @@ def pulisci_campi():
     e_datanascita.delete(0, tk.END)
     e_mail.delete(0, tk.END)
 #---------------------------------------------------------------
-
 
 #-Creare una funzione che Carica i dati della riga selezionata nei campi di input
 def carica_dati(event):
