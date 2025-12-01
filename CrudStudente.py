@@ -23,25 +23,19 @@ strCon = f"""
 # FUNZIONI PRINCIPALI
 # ==========================
 def mostra():
-    """Legge tutti gli studenti dal DB e li mostra nella TextBox."""
+    """Mostra tutti gli studenti nella griglia Treeview"""
     try:
-        conn = odbc.connect(strCon)                         # Connessione DB
-        # -------Usare la store procedure
-        df = pd.read_sql("SELECT * FROM Studente", conn)  # Legge tutti i record
+        conn = odbc.connect(strCon)                      # Connessione DB
+        df = pd.read_sql("SELECT * FROM Studente", conn)   # Legge tutti i record
         conn.close()
 
-        #------------Da modificare --------------
-        # box.delete("1.0", tk.END)
-        # box.insert(tk.END, df.to_string(index=False))
-        #---------------------------------
-
-        # Cancellare tutte le righe della griglia
+        # Cancella righe esistenti nella griglia
         for row in grid.get_children():
             grid.delete(row)
 
-        # Nuove righe da inserire
-        for _, r in grid.iter_rows():
-            grid.insert("", tk.END, values = (r["StudenteId"], r["NomeStudente"], r["DataNascita"], r["Email"]))
+        # Inserisce nuove righe
+        for _, r in df.iterrows():
+            grid.insert("", tk.END, values=(r["StudenteId"], r["NomeStudente"], r["CognomeStudente"], r["DataNascita"], r["Email"]))
     except Exception as e:
         messagebox.showerror("Errore", str(e))
 
@@ -133,6 +127,42 @@ def update_by_id():
 #--------------------------------------------------------
 
 #------ Creare una funzione per Cancellare---------------
+def delete_by_id():
+    """Elimina uno studente usando l'ID"""
+    id_studente = e_id.get().strip()
+
+    if not id_studente:
+        messagebox.showwarning("Attenzione", "Inserisci l'ID dello studente da eliminare!")
+        return
+
+    if not id_studente.isdigit():
+        messagebox.showerror("Errore", "L'ID deve essere un numero intero!")
+        return
+
+    try:
+        conn = odbc.connect(strCon)
+        cursor = conn.cursor()
+        sql = "DELETE FROM Studente WHERE StudenteId = ?"
+        cursor.execute(sql, (int(id_studente),))
+        conn.commit()
+
+        if cursor.rowcount > 0:
+            messagebox.showinfo("OK", "Studente eliminato!")
+        else:
+            messagebox.showwarning("Attenzione", "ID non trovato.")
+
+        pulisci_campi()
+        mostra()
+    except odbc.Error as db_err:
+        conn.rollback()
+        messagebox.showerror("Errore DB", f"Errore durante l'eliminazione: {db_err}")
+    except Exception as e:
+        messagebox.showerror("Errore", f"Errore imprevisto: {e}")
+    finally:
+        try:
+            conn.close()
+        except:
+            pass
 #--------------------------------------------------------
 
 #------ Creare una funzione che Pulisce tutti i campi di input--
@@ -146,6 +176,16 @@ def pulisci_campi():
 
 
 #-Creare una funzione che Carica i dati della riga selezionata nei campi di input
+def carica_dati(event):
+    """Carica i dati della riga selezionata nei campi di input"""
+    selezione = grid.selection()
+    if selezione:
+        valori = grid.item(selezione[0], "values")
+        e_id.delete(0, tk.END); e_id.insert(0, valori[0])
+        e_nome.delete(0, tk.END); e_nome.insert(0, valori[1])
+        e_cognome.delete(0, tk.END); e_cognome.insert(0, valori[2])
+        e_datanascita.delete(0, tk.END); e_datanascita.insert(0, valori[3])
+        e_mail.delete(0, tk.END); e_mail.insert(0, valori[4])
 #---------------------------------------------------------------
 
 ###########################################################
@@ -160,50 +200,44 @@ win.geometry("850x650")
 
 # Etichette
 # Aggiungere StudenteId
-ttk.Label(win, text="Nome").grid(row=0, column=0, padx=5, pady=5)
-ttk.Label(win, text="Cognome").grid(row=0, column=1, padx=5, pady=5)
-ttk.Label(win, text="Data di nascita (YYYY-MM-GG)").grid(row=0, column=2, padx=5, pady=5)
-ttk.Label(win, text="Email").grid(row=0, column=3, padx=5, pady=5)
+ttk.Label(win, text="ID").grid(row=0, column=0, padx=5, pady=5)
+ttk.Label(win, text="Nome").grid(row=0, column=1, padx=5, pady=5)
+ttk.Label(win, text="Cognome").grid(row=0, column=2, padx=5, pady=5)
+ttk.Label(win, text="Data di nascita (YYYY-MM-GG)").grid(row=0, column=3, padx=5, pady=5)
+ttk.Label(win, text="Email").grid(row=0, column=4, padx=5, pady=5)
 
 # Campi input
 # Aggiungere StudenteId
-e_id = tk.Entry(win) # Da finire
-e_nome = ttk.Entry(win); e_nome.grid(row=1, column=0, padx=5, pady=5)
-e_cognome = ttk.Entry(win); e_cognome.grid(row=1, column=1, padx=5, pady=5)
-e_datanascita = ttk.Entry(win); e_datanascita.grid(row=1, column=2, padx=5, pady=5)
-e_mail = ttk.Entry(win); e_mail.grid(row=1, column=3, padx=5, pady=5)
+e_id = ttk.Entry(win); e_id.grid(row=1, column=0, padx=5, pady=5)
+e_nome = ttk.Entry(win); e_nome.grid(row=1, column=1, padx=5, pady=5)
+e_cognome = ttk.Entry(win); e_cognome.grid(row=1, column=2, padx=5, pady=5)
+e_datanascita = ttk.Entry(win); e_datanascita.grid(row=1, column=3, padx=5, pady=5)
+e_mail = ttk.Entry(win); e_mail.grid(row=1, column=4, padx=5, pady=5)
 
 # Pulsanti
 ttk.Button(win, text="Mostra", command=mostra).grid(row=2, column=0, padx=5, pady=10)
 ttk.Button(win, text="Inserisci", command=insert).grid(row=2, column=1, padx=5, pady=10)
 ########## Pulsanti da aggiungere ###########
 # Aggiorna per ID e Elimina per ID
+ttk.Button(win, text="Aggiorna per ID", command=update_by_id).grid(row=2, column=2, padx=5, pady=10)
+ttk.Button(win, text="Elimina per ID", command=delete_by_id).grid(row=2, column=3, padx=5, pady=10)
 ##############################################
 
 # Griglia tipo WinForms###########################
 columns = ("StudenteId", "Nome", "Cognome", "DataNascita", "Email")
 grid = ttk.Treeview(win, columns=columns, show="headings", height=15)
 
-# for col in columns:
-#     grid.heading(col, text=col)
-#     grid.column(col, width=150)
-#
-# scrollbar = ttk.Scrollbar(win, orient="vertical", command=grid.yview)
-# grid.configure(yscroll=scrollbar.set)
-#
-# grid.grid(row=4, column=0, columnspan=5, padx=10, pady=10)
-# scrollbar.grid(row=4, column=5, sticky="ns")
-#
-# # Evento click su riga
-# grid.bind("<<TreeviewSelect>>", carica_dati)
-##################################################
+for col in columns:
+    grid.heading(col, text=col)
+    grid.column(col, width=150)
 
-# Area testo per mostrare dati da rimuovere
-box = tk.Text(win, width=80, height=20)
-box.grid(row=4, column=0, columnspan=4, padx=10, pady=10)
+scrollbar = ttk.Scrollbar(win, orient="vertical", command=grid.yview)
+grid.configure(yscroll=scrollbar.set)
 
+grid.grid(row=4, column=0, columnspan=5, padx=10, pady=10)
+scrollbar.grid(row=4, column=5, sticky="ns")
 
-# # Evento click su riga
-# grid.bind("<<TreeviewSelect>>", carica_dati)
+# Evento click su riga
+grid.bind("<<TreeviewSelect>>", carica_dati)
 
 win.mainloop()
