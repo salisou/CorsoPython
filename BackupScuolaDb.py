@@ -62,21 +62,29 @@ def backup_all():
         conn = odbc.connect(conn_str)
 
         # -------SALVATAGGIO EXCEL-------
+        # if formato == "Excel":
+        #     file_path = filedialog.askopenfilename(
+        #         defaultextension=".xlsx",
+        #         filetypes=[("Excel", "*.xlsx")],
+        #     )
         if formato == "Excel":
-            file_pth = filedialog.askopenfilename(
+            file_path = filedialog.asksaveasfilename(
                 defaultextension=".xlsx",
                 filetypes=[("Excel", "*.xlsx")],
+                title="Salva Backup Excel"
             )
-
-            if not file_pth:
+            if not file_path:
                 return
 
-            with pd.ExcelWriter(file_pth, engine="openpyxl") as writer:
+            with pd.ExcelWriter(file_path, engine="openpyxl") as writer:
                 for t in tables:
                     df = pd.read_sql(f"SELECT * FROM {t}", conn)
                     df.to_excel(writer, sheet_name=t, index=False)
 
-            messagebox.showinfo("Ok", f"Back-Up Excel salvato in:\n{file_pth}")
+            # messagebox.showinfo("Ok", f"Back-Up Excel salvato in:\n{file_pth}")
+            messagebox.showinfo("✔️ Backup Eseguito",
+                                f"Backup Excel salvato in:\n{file_path}")
+
 
             # ----SALVATAGGIO CSV / JSON / XML -------
         else:
@@ -96,7 +104,9 @@ def backup_all():
                 elif formato == "XML":
                     df.to_xml(path, index=False)
 
-            messagebox.showerror("Ok", f"Back-Up {formato} salvato in:\n{folder}")
+            # messagebox.showerror("Ok", f"Back-Up {formato} salvato in:\n{folder}") # Da Modificare
+            messagebox.showinfo("✔️ Backup Eseguito",
+                                f"Backup {formato} salvato in:\n{folder}")
         conn.close()
     except Exception as e:
         messagebox.showerror("❌Error", str(e))
